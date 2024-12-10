@@ -1,55 +1,68 @@
 // /src/pages/HomePage.js
-import React, { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import logo from '../logo.svg';
+import './HomePage.css';
 
 const HomePage = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'volunteer',
-  });
-
-  const { name, email, password, role } = formData;
-
-  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const onSubmit = async e => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('/api/users/home', formData);
-      console.log(res.data);
-      // Пренасочване или друга логика
-    } catch (err) {
-      console.error(err.response.data);
-    }
-  };
-
   return (
-    <div className="container">
-      <h2>Регистрация</h2>
-      <form onSubmit={onSubmit}>
-        <div className="form-group">
-          <label>Име</label>
-          <input type="text" className="form-control" name="name" value={name} onChange={onChange} required />
+    <div className="homepage">
+      <header className="hero-section text-white d-flex align-items-center">
+        <div className="container text-center">
+          <img src={logo} className="App-logo mb-4" alt="logo" />
+          <h1 className="display-4">Добре дошли в Доброволци БГ</h1>
+          <p className="lead">
+            Свържете се с организации и намерете идеалната доброволческа инициатива за вас.
+          </p>
+          <Link to="/register" className="btn btn-primary btn-lg mr-2">
+            Регистрация
+          </Link>
+          <Link to="/login" className="btn btn-secondary btn-lg">
+            Вход
+          </Link>
         </div>
-        <div className="form-group">
-          <label>Имейл</label>
-          <input type="email" className="form-control" name="email" value={email} onChange={onChange} required />
+      </header>
+
+      <section className="features-section py-5">
+        <div className="container">
+          <h2 className="text-center mb-4">Нашите Предимства</h2>
+          <div className="row">
+            <div className="col-md-4">
+              <div className="feature-box text-center p-4">
+                <i className="fas fa-users fa-3x mb-3"></i>
+                <h4>Голяма Общност</h4>
+                <p>Свържете се с хиляди доброволци и организации в цялата страна.</p>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div className="feature-box text-center p-4">
+                <i className="fas fa-search fa-3x mb-3"></i>
+                <h4>Лесно Търсене</h4>
+                <p>Намерете инициативи по локация, категория и умения.</p>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div className="feature-box text-center p-4">
+                <i className="fas fa-handshake fa-3x mb-3"></i>
+                <h4>Ефективна Комуникация</h4>
+                <p>Взаимодействайте лесно с организаторите и управлението на кандидатурите.</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="form-group">
-          <label>Парола</label>
-          <input type="password" className="form-control" name="password" value={password} onChange={onChange} required />
+      </section>
+
+      <section className="call-to-action text-center py-5 bg-light">
+        <div className="container">
+          <h2>Готови ли сте да направите разлика?</h2>
+          <p>
+            Присъединете се към нашата общност и започнете да участвате в смислени инициативи днес.
+          </p>
+          <Link to="/register" className="btn btn-primary btn-lg">
+            Започнете сега
+          </Link>
         </div>
-        <div className="form-group">
-          <label>Роля</label>
-          <select className="form-control" name="role" value={role} onChange={onChange}>
-            <option value="volunteer">Доброволец</option>
-            <option value="organizer">Организатор</option>
-          </select>
-        </div>
-        <button type="submit" className="btn btn-primary">Регистрация</button>
-      </form>
+      </section>
     </div>
   );
 };

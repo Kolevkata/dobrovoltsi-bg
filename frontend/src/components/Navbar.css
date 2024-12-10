@@ -1,0 +1,129 @@
+/* /src/components/Navbar.css */
+
+.navbar-custom {
+    background-color: #333;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+}
+
+.navbar-brand {
+    color: white;
+    font-size: 20px;
+    text-decoration: none;
+}
+
+.navbar-links a {
+    color: white;
+    text-align: center;
+    padding: 0 16px;
+    text-decoration: none;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.navbar-links a:hover {
+    background-color: #575757;
+}
+
+.navbar-auth a {
+    color: white;
+    text-align: center;
+    padding: 0 16px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.navbar-auth a:hover {
+    background-color: #575757;
+}
+
+
+/* Dropdown Styles */
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background-color: inherit;
+    color: white;
+    padding: 0 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    display: flex;
+    align-items: center;
+}
+
+.dropbtn i {
+    margin-left: 5px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    top: 100%;
+    left: 0;
+}
+
+.dropdown-content a,
+.dropdown-content .dropdown-item-button {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    background: none;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+.dropdown-content a:hover,
+.dropdown-content .dropdown-item-button:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+
+/* Responsive Adjustments */
+
+@media screen and (max-width: 768px) {
+    .navbar-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .navbar-links,
+    .navbar-auth {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .navbar-links a,
+    .navbar-auth a,
+    .dropbtn {
+        width: 100%;
+        padding: 12px 16px;
+        text-align: left;
+    }
+    .dropdown-content {
+        position: relative;
+        box-shadow: none;
+    }
+}

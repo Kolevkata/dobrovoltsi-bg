@@ -1,0 +1,18 @@
+/* /src/pages/AddInitiative.css */
+
+.add-initiative {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.add-initiative .form-group {
+    margin-bottom: 20px;
+}
+
+.add-initiative label {
+    font-weight: bold;
+}
+
+.add-initiative .btn {
+    width: 100%;
+}
