@@ -2,10 +2,10 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
-import InitiativeCard from '../components/InitiativeCard';
+// import InitiativeCard from '../components/InitiativeCard';
 import { Link } from 'react-router-dom';
 import ApplicationsList from '../components/ApplicationsList'; 
-import { Spinner, Alert } from 'react-bootstrap';
+import { Spinner, Alert, Badge } from 'react-bootstrap';
 
 const Dashboard = () => {
   const { auth } = useContext(AuthContext);
@@ -16,7 +16,6 @@ const Dashboard = () => {
   const [errorInitiatives, setErrorInitiatives] = useState(false);
   const [errorApplications, setErrorApplications] = useState(false);
 
-  // Function to fetch initiatives (for organizers)
   const fetchInitiatives = useCallback(async () => {
     try {
       const res = await axios.get('/initiatives', {
@@ -24,6 +23,7 @@ const Dashboard = () => {
           Authorization: `Bearer ${auth.accessToken}`,
         },
       });
+      // For organizer: server returns approved + their own unapproved
       const organizerInitiatives = res.data.filter(
         (initiative) => initiative.organizerId === auth.user.id
       );
@@ -36,7 +36,6 @@ const Dashboard = () => {
     }
   }, [auth.accessToken, auth.user.id]);
 
-  // Function to fetch applications (for organizers)
   const fetchApplicationsForOrganizer = useCallback(async () => {
     try {
       const res = await axios.get('/applications/organizer', {
@@ -53,7 +52,6 @@ const Dashboard = () => {
     }
   }, [auth.accessToken]);
 
-  // Function to fetch applications (for volunteers)
   const fetchApplicationsForVolunteer = useCallback(async () => {
     try {
       const res = await axios.get('/applications/user', {
@@ -70,7 +68,6 @@ const Dashboard = () => {
     }
   }, [auth.accessToken]);
 
-  // Function to fetch initiatives (organizers) and applications
   useEffect(() => {
     if (auth.user.role === 'organizer') {
       fetchInitiatives();
@@ -80,7 +77,6 @@ const Dashboard = () => {
     }
   }, [auth.user.role, fetchInitiatives, fetchApplicationsForOrganizer, fetchApplicationsForVolunteer]);
 
-  // Function to refresh applications after status change or new application
   const refreshApplications = () => {
     setLoadingApplications(true);
     if (auth.user.role === 'organizer') {
@@ -90,7 +86,6 @@ const Dashboard = () => {
     }
   };
 
-  // Function to handle initiative deletion (for organizers)
   const handleDelete = async (id) => {
     if (window.confirm('Сигурни ли сте, че искате да изтриете тази инициатива?')) {
       try {
@@ -99,7 +94,6 @@ const Dashboard = () => {
             Authorization: `Bearer ${auth.accessToken}`,
           },
         });
-        // Update the initiatives list after deletion
         setInitiatives(initiatives.filter((initiative) => initiative.id !== id));
       } catch (err) {
         console.error(err.response?.data || err);
@@ -129,11 +123,34 @@ const Dashboard = () => {
             <div className="row">
               {initiatives.map((initiative) => (
                 <div className="col-md-4 d-flex" key={initiative.id}>
-                  <InitiativeCard
-                    initiative={initiative}
-                    isOrganizer={true}
-                    onDelete={handleDelete} // Pass handleDelete to InitiativeCard
-                  />
+                  <div className="card mb-4 h-100">
+                    <img
+                      src={initiative.imageUrl}
+                      className="card-img-top"
+                      alt={initiative.title}
+                    />
+                    <div className="card-body d-flex flex-column">
+                      <h5 className="card-title">{initiative.title}</h5>
+                      {!initiative.approved && (
+                        <Badge bg="warning" className="mb-2">Очаква одобрение</Badge>
+                      )}
+                      <p className="card-text">{initiative.description.substring(0, 100)}...</p>
+                      <Link to={`/initiatives/${initiative.id}`} className="btn btn-primary mt-auto mb-2">
+                        Виж повече
+                      </Link>
+                      <div className="d-flex justify-content-between">
+                        <Link to={`/initiatives/edit/${initiative.id}`} className="btn btn-warning">
+                          Редактиране
+                        </Link>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => handleDelete(initiative.id)}
+                        >
+                          Изтриване
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -151,7 +168,7 @@ const Dashboard = () => {
           ) : (
             <ApplicationsList
               applications={applications}
-              refreshApplications={refreshApplications} // Pass refresh function
+              refreshApplications={refreshApplications}
             />
           )}
         </>
@@ -171,7 +188,7 @@ const Dashboard = () => {
           ) : (
             <ApplicationsList
               applications={applications}
-              isVolunteer={true} // Set isVolunteer to true
+              isVolunteer={true}
             />
           )}
         </>

@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import InitiativeCard from '../components/InitiativeCard';
-import { AuthContext } from '../contexts/AuthContext'; // Import AuthContext
-import { Spinner, Button, Alert } from 'react-bootstrap'; // Import components from react-bootstrap
+import { AuthContext } from '../contexts/AuthContext';
+import { Spinner, Button, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 const InitiativeList = () => {
@@ -16,11 +16,10 @@ const InitiativeList = () => {
   const [applyingInitiativeId, setApplyingInitiativeId] = useState(null);
   const [message, setMessage] = useState(null);
 
-  // Fetch all initiatives
   useEffect(() => {
     const fetchInitiatives = async () => {
       try {
-        const res = await axios.get('/initiatives'); // Corrected path
+        const res = await axios.get('/initiatives');
         setInitiatives(res.data);
       } catch (err) {
         console.error(err);
@@ -33,24 +32,22 @@ const InitiativeList = () => {
     fetchInitiatives();
   }, []);
 
-  // Fetch user's applications to check applied initiatives
   useEffect(() => {
-    const fetchUserApplications = async () => {
-      if (auth.user.role !== 'volunteer') return;
-
-      try {
-        const res = await axios.get('/applications/user', {
-          headers: {
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
-        });
-        setUserApplications(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchUserApplications();
+    if (auth?.user?.role === 'volunteer') {
+      const fetchUserApplications = async () => {
+        try {
+          const res = await axios.get('/applications/user', {
+            headers: {
+              Authorization: `Bearer ${auth.accessToken}`,
+            },
+          });
+          setUserApplications(res.data);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchUserApplications();
+    }
   }, [auth]);
 
   const handleApply = async (initiativeId) => {
@@ -101,12 +98,8 @@ const InitiativeList = () => {
     <div className="container mt-5">
       <h2>Доброволчески Инициативи</h2>
 
-      {auth.user.role === 'volunteer' && message && (
-        <Alert
-          variant={message.type}
-          onClose={() => setMessage(null)}
-          dismissible
-        >
+      {auth?.user?.role === 'volunteer' && message && (
+        <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
           {message.text}
         </Alert>
       )}
@@ -125,13 +118,10 @@ const InitiativeList = () => {
                 <p className="card-text">
                   {initiative.description.substring(0, 100)}...
                 </p>
-                <Link
-                  to={`/initiatives/${initiative.id}`}
-                  className="btn btn-primary mt-auto mb-2"
-                >
+                <Link to={`/initiatives/${initiative.id}`} className="btn btn-primary mt-auto mb-2">
                   Виж повече
                 </Link>
-                {auth.user.role === 'volunteer' && (
+                {auth?.user?.role === 'volunteer' && (
                   <Button
                     variant="success"
                     onClick={() => handleApply(initiative.id)}

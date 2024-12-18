@@ -1,4 +1,4 @@
-// /frontend/src/App.js
+// /src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -14,6 +14,13 @@ import AddInitiative from './pages/AddInitiative';
 import EditInitiative from './pages/EditInitiative'; 
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
+import ProfileEdit from './pages/ProfileEdit'; 
+import ChangePassword from './pages/ChangePassword';
+import UserProfile from './pages/UserProfile'; 
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import NotFound from './pages/NotFound'; 
+
 
 function App() {
   return (
@@ -44,7 +51,7 @@ function App() {
                 <PrivateRoute>
                   <EditInitiative />
                 </PrivateRoute>
-              } /> {/* Новият маршрут за редактиране */}
+              } />
               <Route path="/initiatives/:id" element={<InitiativeDetail />} />
               <Route
                 path="/profile"
@@ -54,7 +61,46 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              {/* Add a catch-all route for 404 if desired */}
+              <Route
+                path="/profile/edit"
+                element={
+                  <PrivateRoute>
+                    <ProfileEdit />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/profile/change-password"
+                element={
+                  <PrivateRoute>
+                    <ChangePassword />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/profile/user/:id"
+                element={
+                  <PrivateRoute>
+                    <UserProfile />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <PrivateRoute roles={['admin']}>
+                    <AdminDashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <PrivateRoute roles={['admin']}>
+                    <AdminUsers />
+                  </PrivateRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
@@ -64,13 +110,5 @@ function App() {
     </Router>
   );
 }
-
-// Optional: Create a NotFound component
-const NotFound = () => (
-  <div className="container mt-5">
-    <h2>404 - Страницата не е намерена</h2>
-    <p>Съжаляваме, но страницата, която търсите, не съществува.</p>
-  </div>
-);
 
 export default App;

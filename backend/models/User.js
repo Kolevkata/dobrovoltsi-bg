@@ -4,12 +4,10 @@ const { sequelize } = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 const User = sequelize.define('User', {
-    // Име на потребителя
     name: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    // Имейл
     email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -18,7 +16,6 @@ const User = sequelize.define('User', {
             isEmail: true,
         },
     },
-    // Парола
     password: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -26,10 +23,14 @@ const User = sequelize.define('User', {
             len: [6, 100],
         },
     },
-    // Роля (доброволец или организатор)
     role: {
-        type: DataTypes.ENUM('volunteer', 'organizer'),
+        type: DataTypes.ENUM('volunteer', 'organizer', 'admin'),
         allowNull: false,
+        defaultValue: 'volunteer',
+    },
+    profileImage: {
+        type: DataTypes.STRING,
+        allowNull: true, // Stores the image filename/path
     },
 }, {
     hooks: {
@@ -54,7 +55,6 @@ const User = sequelize.define('User', {
     },
 });
 
-// Метод за сравняване на пароли
 User.prototype.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };

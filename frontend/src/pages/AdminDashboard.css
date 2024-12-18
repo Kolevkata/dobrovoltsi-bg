@@ -1,0 +1,15 @@
+/* /src/pages/AdminDashboard.css */
+
+.action-dropdown .dropdown-menu {
+    display: none;
+}
+
+.action-dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
+    /* Remove the gap so it doesn't close */
+}
+
+.action-toggle {
+    cursor: pointer;
+}

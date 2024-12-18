@@ -28,11 +28,14 @@ const Initiative = sequelize.define('Initiative', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    approved: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false, // Admin must approve
+    },
 }, {
-    // Допълнителни настройки
+    // Settings
 });
 
-// Връзка с потребителя (организатор)
 User.hasMany(Initiative, { foreignKey: 'organizerId' });
 Initiative.belongsTo(User, { foreignKey: 'organizerId', as: 'organizer' });
 

@@ -6,24 +6,21 @@ const {
     getAllInitiatives,
     getInitiativeById,
     updateInitiative,
-    deleteInitiative
+    deleteInitiative,
+    approveInitiative
 } = require('../controllers/initiativeController');
 const { protect } = require('../middleware/auth');
-const { authorize } = require('../middleware/authorize');
+const { authorize, isAdmin } = require('../middleware/authorize');
+const upload = require('../middleware/upload');
+const { optionalAuth } = require('../middleware/optionalAuth');
 
-// Създаване на инициатива (само за организатори)
-router.post('/', protect, authorize('organizer'), createInitiative);
+// Use optionalAuth for public endpoint, so it can detect logged-in organizers/admins
+router.get('/', optionalAuth, getAllInitiatives);
+router.get('/:id', optionalAuth, getInitiativeById);
 
-// Получаване на всички инициативи
-router.get('/', getAllInitiatives);
-
-// Получаване на инициатива по ID
-router.get('/:id', getInitiativeById);
-
-// Актуализиране на инициатива (само за организатори)
-router.put('/:id', protect, authorize('organizer'), updateInitiative);
-
-// Изтриване на инициатива (само за организатори)
-router.delete('/:id', protect, authorize('organizer'), deleteInitiative);
+router.post('/', protect, authorize('organizer', 'admin'), upload.single('image'), createInitiative);
+router.put('/:id', protect, authorize('organizer', 'admin'), upload.single('image'), updateInitiative);
+router.delete('/:id', protect, authorize('organizer', 'admin'), deleteInitiative);
+router.put('/:id/approve', protect, isAdmin, approveInitiative);
 
 module.exports = router;

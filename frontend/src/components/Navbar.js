@@ -10,7 +10,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/'); // Redirect to home after logout
+    navigate('/');
   };
 
   const getNavLinkClass = ({ isActive }) => (isActive ? 'nav-link active' : 'nav-link');
@@ -39,7 +39,7 @@ const Navbar = () => {
                 Инициативи
               </NavLink>
             </li>
-            {isAuthenticated && auth.user.role === 'organizer' && ( // Проверка за роля
+            {isAuthenticated && auth.user.role === 'organizer' && (
               <li className="nav-item">
                 <NavLink className={getNavLinkClass} to="/initiatives/add">
                   Добавяне на инициатива
@@ -53,25 +53,48 @@ const Navbar = () => {
                 </NavLink>
               </li>
             )}
+            {isAuthenticated && auth.user.role === 'admin' && (
+              <li className="nav-item">
+                <NavLink className={getNavLinkClass} to="/admin">
+                  Admin
+                </NavLink>
+              </li>
+            )}
           </ul>
           <ul className="navbar-nav ms-auto">
             {isAuthenticated ? (
               <li className="nav-item dropdown">
                 <a
-                  className="nav-link dropdown-toggle"
+                  className="nav-link dropdown-toggle d-flex align-items-center"
                   href="#!"
                   id="navbarDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  {/* <i className="fa fa-user-circle" aria-hidden="true"></i> Профил */}
+                  {auth.user.profileImage && (
+                    <img 
+                      src={auth.user.profileImage}
+                      alt="Profile"
+                      style={{width:'30px', height:'30px', borderRadius:'50%', marginRight:'8px'}}
+                    />
+                  )}
                   Профил
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                   <li>
                     <NavLink className="dropdown-item" to="/profile">
                       Моят Профил
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink className="dropdown-item" to="/profile/edit">
+                      Редактиране на Профил
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink className="dropdown-item" to="/profile/change-password">
+                      Смяна на Парола
                     </NavLink>
                   </li>
                   <li>

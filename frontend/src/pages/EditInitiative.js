@@ -1,9 +1,9 @@
-// /frontend/src/pages/EditInitiative.js
+// /src/pages/EditInitiative.js
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import './AddInitiative.css'; // Използване на същите стилове
+import './AddInitiative.css';
 import { AuthContext } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -20,9 +20,6 @@ const EditInitiativeSchema = Yup.object().shape({
     .required('Датата е задължителна'),
   category: Yup.string()
     .required('Категорията е задължителна'),
-  imageUrl: Yup.string()
-    .url('Невалиден URL')
-    .required('URL на изображението е задължителен'),
 });
 
 const EditInitiative = () => {
@@ -35,24 +32,23 @@ const EditInitiative = () => {
     location: '',
     date: '',
     category: '',
-    imageUrl: '',
+    image: null
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Зареждане на данните на инициативата
   useEffect(() => {
     const fetchInitiative = async () => {
       try {
         const res = await axios.get(`/initiatives/${id}`);
-        const { title, description, location, date, category, imageUrl } = res.data;
+        const { title, description, location, date, category } = res.data;
         setInitialValues({
           title,
           description,
           location,
-          date: date.split('T')[0], // Форматиране на датата за input type="date"
+          date: date.split('T')[0],
           category,
-          imageUrl,
+          image: null
         });
       } catch (err) {
         console.error(err.response?.data || err);
@@ -66,10 +62,21 @@ const EditInitiative = () => {
   }, [id]);
 
   const onSubmit = async (values, { setSubmitting, setErrors }) => {
+    const formData = new FormData();
+    formData.append('title', values.title);
+    formData.append('description', values.description);
+    formData.append('location', values.location);
+    formData.append('date', values.date);
+    formData.append('category', values.category);
+    if (values.image) {
+      formData.append('image', values.image);
+    }
+
     try {
-      await axios.put(`/initiatives/${id}`, values, {
+      await axios.put(`/initiatives/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${auth.accessToken}`,
+          'Content-Type': 'multipart/form-data'
         },
       });
       navigate('/dashboard');
@@ -93,7 +100,7 @@ const EditInitiative = () => {
         enableReinitialize
         onSubmit={onSubmit}
       >
-        {({ isSubmitting, errors }) => (
+        {({ isSubmitting, errors, setFieldValue }) => (
           <Form>
             {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
             
@@ -128,9 +135,15 @@ const EditInitiative = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="imageUrl">URL на изображение</label>
-              <Field type="url" name="imageUrl" className="form-control" />
-              <ErrorMessage name="imageUrl" component="div" className="text-danger" />
+              <label htmlFor="image">Изображение (оставете празно, ако не желаете промяна)</label>
+              <input 
+                type="file"
+                name="image" 
+                className="form-control"
+                onChange={(event) => {
+                  setFieldValue('image', event.currentTarget.files[0]);
+                }}
+              />
             </div>
 
             <button type="submit" className="btn btn-primary mt-3" disabled={isSubmitting}>

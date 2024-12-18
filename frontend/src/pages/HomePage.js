@@ -1,10 +1,14 @@
 // /src/pages/HomePage.js
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../logo.svg';
 import './HomePage.css';
+import { AuthContext } from '../contexts/AuthContext';
+import { Button } from 'react-bootstrap';
 
 const HomePage = () => {
+  const { auth, logout } = useContext(AuthContext);
+
   return (
     <div className="homepage">
       <header className="hero-section text-white d-flex align-items-center">
@@ -14,12 +18,27 @@ const HomePage = () => {
           <p className="lead">
             Свържете се с организации и намерете идеалната доброволческа инициатива за вас.
           </p>
-          <Link to="/register" className="btn btn-primary btn-lg mr-2">
-            Регистрация
-          </Link>
-          <Link to="/login" className="btn btn-secondary btn-lg">
-            Вход
-          </Link>
+          <div className="d-flex justify-content-center mt-4 flex-wrap gap-3">
+            {!auth.user ? (
+              <>
+                <Link to="/register" className="btn btn-primary btn-lg">
+                  Регистрация
+                </Link>
+                <Link to="/login" className="btn btn-secondary btn-lg">
+                  Вход
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/dashboard" className="btn btn-success btn-lg">
+                  Dashboard
+                </Link>
+                <Button variant="danger" className="btn btn-lg" onClick={logout}>
+                  Изход
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -54,13 +73,29 @@ const HomePage = () => {
 
       <section className="call-to-action text-center py-5 bg-light">
         <div className="container">
-          <h2>Готови ли сте да направите разлика?</h2>
-          <p>
-            Присъединете се към нашата общност и започнете да участвате в смислени инициативи днес.
-          </p>
-          <Link to="/register" className="btn btn-primary btn-lg">
-            Започнете сега
-          </Link>
+          <div className="d-flex justify-content-center flex-column align-items-center">
+            {!auth.user ? (
+              <>
+                <h2>Готови ли сте да направите разлика?</h2>
+                <p className="mb-4">
+                  Присъединете се към нашата общност и започнете да участвате в смислени инициативи днес.
+                </p>
+                <Link to="/register" className="btn btn-primary btn-lg">
+                  Започнете сега
+                </Link>
+              </>
+            ) : (
+              <>
+                <h2>Добре дошли, {auth.user.name}!</h2>
+                <p className="mb-4">
+                  Разгледайте нашите инициативи и намерете перфектната за вас.
+                </p>
+                <Link to="/initiatives" className="btn btn-primary btn-lg">
+                  Разгледай Инициативи
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </section>
     </div>

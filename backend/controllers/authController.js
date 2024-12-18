@@ -5,32 +5,32 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-// Helper function to generate access tokens
 const generateAccessToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '1h',
     });
 };
 
-// Helper function to generate refresh tokens
 const generateRefreshToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, {
         expiresIn: '7d',
     });
 };
 
-// Registration of user
+function getFullImageUrl(req, relativePath) {
+    if (!relativePath) return null;
+    return `${req.protocol}://${req.get('host')}${relativePath}`;
+}
+
 exports.register = async(req, res) => {
     const { name, email, password, role } = req.body;
 
     try {
-        // Check if user exists
         let user = await User.findOne({ where: { email } });
         if (user) {
             return res.status(400).json({ msg: 'Потребителят вече съществува' });
         }
 
-        // Create new user
         user = await User.create({
             name,
             email,
@@ -38,16 +38,16 @@ exports.register = async(req, res) => {
             role,
         });
 
-        // Generate tokens
         const accessToken = generateAccessToken(user.id);
         const refreshToken = generateRefreshToken(user.id);
 
-        // Save refresh token in the database
         await Token.create({
             token: refreshToken,
             userId: user.id,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
+
+        const profileImage = getFullImageUrl(req, user.profileImage);
 
         res.status(201).json({
             accessToken,
@@ -57,6 +57,7 @@ exports.register = async(req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                profileImage
             },
         });
     } catch (err) {
@@ -65,34 +66,30 @@ exports.register = async(req, res) => {
     }
 };
 
-// User login
 exports.login = async(req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Find user with password
         const user = await User.scope('withPassword').findOne({ where: { email } });
-
         if (!user) {
             return res.status(400).json({ msg: 'Невалидни креденциали' });
         }
 
-        // Check password
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             return res.status(400).json({ msg: 'Невалидни креденциали' });
         }
 
-        // Generate tokens
         const accessToken = generateAccessToken(user.id);
         const refreshToken = generateRefreshToken(user.id);
 
-        // Save refresh token in the database
         await Token.create({
             token: refreshToken,
             userId: user.id,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
+
+        const profileImage = getFullImageUrl(req, user.profileImage);
 
         res.json({
             accessToken,
@@ -102,6 +99,7 @@ exports.login = async(req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                profileImage
             },
         });
     } catch (err) {
@@ -110,19 +108,19 @@ exports.login = async(req, res) => {
     }
 };
 
-// Get user profile
 exports.getProfile = async(req, res) => {
     try {
         const user = await User.findByPk(req.user.id);
         if (!user) {
             return res.status(404).json({ msg: 'Потребителят не е намерен' });
         }
-
+        const profileImage = getFullImageUrl(req, user.profileImage);
         res.json({
             id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,
+            profileImage
         });
     } catch (err) {
         console.error(err.message);
@@ -130,7 +128,6 @@ exports.getProfile = async(req, res) => {
     }
 };
 
-// Refresh access token
 exports.refreshToken = async(req, res) => {
     const { refreshToken } = req.body;
 
@@ -139,32 +136,36 @@ exports.refreshToken = async(req, res) => {
     }
 
     try {
-        // Verify refresh token
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-        // Check if refresh token exists in the database
         const storedToken = await Token.findOne({ where: { token: refreshToken, userId: decoded.id } });
         if (!storedToken) {
             return res.status(401).json({ msg: 'Неоторизиран достъп, невалиден refresh token' });
         }
 
-        // Check if refresh token is expired
         if (storedToken.expiresAt < new Date()) {
-            await storedToken.destroy(); // Remove expired token
+            await storedToken.destroy();
             return res.status(401).json({ msg: 'Refresh token е изтекъл' });
         }
 
-        // Generate new access token
-        const newAccessToken = generateAccessToken(decoded.id);
+        await storedToken.destroy();
 
-        res.json({ accessToken: newAccessToken });
+        const newAccessToken = generateAccessToken(decoded.id);
+        const newRefreshToken = generateRefreshToken(decoded.id);
+
+        await Token.create({
+            token: newRefreshToken,
+            userId: decoded.id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
+
+        res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
     } catch (err) {
         console.error(err);
         res.status(401).json({ msg: 'Неоторизиран достъп, невалиден refresh token' });
     }
 };
 
-// Logout user (revoke refresh token)
 exports.logout = async(req, res) => {
     const { refreshToken } = req.body;
 
@@ -173,7 +174,6 @@ exports.logout = async(req, res) => {
     }
 
     try {
-        // Find and delete the refresh token from the database
         const token = await Token.findOne({ where: { token: refreshToken } });
         if (token) {
             await token.destroy();

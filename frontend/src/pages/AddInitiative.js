@@ -1,6 +1,6 @@
 // /src/pages/AddInitiative.js
 import React, { useContext } from 'react';
-// import axios from 'axios';
+import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import './AddInitiative.css';
@@ -20,21 +20,17 @@ const AddInitiativeSchema = Yup.object().shape({
     .required('Датата е задължителна'),
   category: Yup.string()
     .required('Категорията е задължителна'),
-  imageUrl: Yup.string()
-    .url('Невалиден URL')
-    .required('URL на изображението е задължителен'),
 });
 
 const AddInitiative = () => {
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Проверка дали потребителят е организатор
-  if (auth.user.role !== 'organizer') {
+  if (auth.user.role !== 'organizer' && auth.user.role !== 'admin') {
     return (
       <div className="container mt-5">
         <h2>Неоторизиран достъп</h2>
-        <p>Само организаторите могат да добавят нови инициативи.</p>
+        <p>Само организаторите или администраторите могат да добавят нови инициативи.</p>
       </div>
     );
   }
@@ -45,12 +41,27 @@ const AddInitiative = () => {
     location: '',
     date: '',
     category: '',
-    imageUrl: '',
+    image: null
   };
 
   const onSubmit = async (values, { setSubmitting, resetForm, setErrors }) => {
+    const formData = new FormData();
+    formData.append('title', values.title);
+    formData.append('description', values.description);
+    formData.append('location', values.location);
+    formData.append('date', values.date);
+    formData.append('category', values.category);
+    if (values.image) {
+      formData.append('image', values.image);
+    }
+
     try {
-    //   const res = await axios.post('/initiatives', values);
+      await axios.post('/initiatives', formData, {
+        headers: {
+          Authorization: `Bearer ${auth.accessToken}`,
+          'Content-Type': 'multipart/form-data'
+        },
+      });
       resetForm();
       navigate('/initiatives');
     } catch (err) {
@@ -69,7 +80,7 @@ const AddInitiative = () => {
         validationSchema={AddInitiativeSchema}
         onSubmit={onSubmit}
       >
-        {({ isSubmitting, errors }) => (
+        {({ isSubmitting, errors, setFieldValue }) => (
           <Form>
             {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
             
@@ -104,9 +115,15 @@ const AddInitiative = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="imageUrl">URL на изображение</label>
-              <Field type="url" name="imageUrl" className="form-control" />
-              <ErrorMessage name="imageUrl" component="div" className="text-danger" />
+              <label htmlFor="image">Изображение</label>
+              <input 
+                type="file" 
+                name="image" 
+                className="form-control"
+                onChange={(event) => {
+                  setFieldValue('image', event.currentTarget.files[0]);
+                }}
+              />
             </div>
 
             <button type="submit" className="btn btn-primary mt-3" disabled={isSubmitting}>

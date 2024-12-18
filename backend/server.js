@@ -5,33 +5,45 @@ const { sequelize } = require('./config/db');
 const initiativeRoutes = require('./routes/initiativeRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const errorHandler = require('./utils/errorHandler');
 require('dotenv').config();
-
-// Import the Token model to ensure it's registered
 const Token = require('./models/Token');
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/initiatives', initiativeRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Central Error Handler
 app.use(errorHandler);
 
-// Database connection and synchronization
 sequelize.authenticate()
     .then(() => {
         console.log('Database connected...');
-        return sequelize.sync(); // Sync all models, including Token
+        sequelize.sync()
     })
-    .then(() => console.log('Models synchronized with the database'))
+    .then(async() => {
+        console.log('Models synchronized with the database');
+        // Ensure admin user exists
+        const User = require('./models/User');
+        const adminUser = await User.findOne({ where: { email: 'administrator@dobrovoltsibg.com' } });
+        if (!adminUser) {
+            await User.create({
+                name: 'Administrator',
+                email: 'administrator@dobrovoltsibg.com',
+                password: 'dobrovoltsibg',
+                role: 'admin'
+            });
+            console.log('Admin user created with username: administrator@dobrovoltsibg.com and password: dobrovoltsibg');
+        }
+    })
     .catch(err => console.log('Error: ' + err));
 
 const PORT = process.env.PORT || 5000;

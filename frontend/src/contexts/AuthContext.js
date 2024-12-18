@@ -4,10 +4,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { isTokenExpired } from '../utils/tokenUtils';
 
-// Create Auth Context
 export const AuthContext = createContext();
 
-// Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
@@ -17,9 +15,20 @@ export const AuthProvider = ({ children }) => {
     user: JSON.parse(localStorage.getItem('user')),
   });
 
-  // Function to refresh access token
+  const logout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
+    setAuth({ accessToken: null, refreshToken: null, user: null });
+  };
+
   const refreshAccessToken = useCallback(async () => {
     try {
+      if (!auth.refreshToken) {
+        logout();
+        return null;
+      }
       const res = await axios.post('/auth/refresh-token', {
         refreshToken: auth.refreshToken,
       });
@@ -41,20 +50,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, [auth.refreshToken, navigate]);
 
-  // Setup Axios interceptors
   useEffect(() => {
-    // Set Axios Authorization header if accessToken exists
     if (auth.accessToken) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${auth.accessToken}`;
     }
 
-    // Response interceptor to handle 401 and 403 errors
     const responseInterceptor = axios.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
         if (
-          (error.response.status === 401 || error.response.status === 403) &&
+          (error.response?.status === 401 || error.response?.status === 403) &&
           !originalRequest._retry &&
           auth.refreshToken
         ) {
@@ -69,7 +75,6 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // Request interceptor to check token expiration before each request
     const requestInterceptor = axios.interceptors.request.use(
       async (config) => {
         if (auth.accessToken && isTokenExpired(auth.accessToken)) {
@@ -83,50 +88,34 @@ export const AuthProvider = ({ children }) => {
       (error) => Promise.reject(error)
     );
 
-    // Cleanup interceptors on unmount
     return () => {
       axios.interceptors.response.eject(responseInterceptor);
       axios.interceptors.request.eject(requestInterceptor);
     };
   }, [auth.accessToken, auth.refreshToken, refreshAccessToken]);
 
-  // Login function
   const login = (accessToken, refreshToken, user) => {
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(user));
-
     axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-    setAuth({
-      accessToken,
-      refreshToken,
-      user,
-    });
+    setAuth({ accessToken, refreshToken, user });
   };
 
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-
-    delete axios.defaults.headers.common['Authorization'];
-
-    setAuth({
-      accessToken: null,
-      refreshToken: null,
-      user: null,
-    });
-  };
-
-  // Register function
   const register = (accessToken, refreshToken, user) => {
     login(accessToken, refreshToken, user);
   };
 
+  const updateUser = (user) => {
+    setAuth((prev) => {
+      const updated = { ...prev, user };
+      localStorage.setItem('user', JSON.stringify(user));
+      return updated;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ auth, login, logout, register }}>
+    <AuthContext.Provider value={{ auth, login, logout, register, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

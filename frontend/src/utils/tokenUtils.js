@@ -1,11 +1,6 @@
 // /src/utils/tokenUtils.js
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; // Changed import
 
-/**
- * Gets the expiration date of a JWT token.
- * @param {string} token - JWT token.
- * @returns {Date|null} - Expiration date or null if not available.
- */
 export const getTokenExpirationDate = (token) => {
     try {
         if (!token || token === 'undefined') return null;
@@ -23,15 +18,10 @@ export const getTokenExpirationDate = (token) => {
     }
 };
 
-/**
- * Checks if a token is expired.
- * @param {string} token - JWT token.
- * @returns {boolean} - True if expired, else false.
- */
 export const isTokenExpired = (token) => {
     const expirationDate = getTokenExpirationDate(token);
     if (!expirationDate) {
-        return true; // Consider token expired if no expiration info
+        return true;
     }
     return expirationDate < new Date();
 };

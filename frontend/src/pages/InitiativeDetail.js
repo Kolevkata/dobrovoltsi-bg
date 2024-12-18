@@ -1,4 +1,4 @@
-// /frontend/src/pages/InitiativeDetail.js
+// /src/pages/InitiativeDetail.js
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -35,21 +35,21 @@ const InitiativeDetail = () => {
   // Check if the volunteer has already applied
   useEffect(() => {
     const checkApplication = async () => {
-      if (auth.user.role !== 'volunteer') return;
+      if (auth.user && auth.user.role === 'volunteer') {
+        try {
+          const res = await axios.get('/applications/user', {
+            headers: {
+              Authorization: `Bearer ${auth.accessToken}`,
+            },
+          });
 
-      try {
-        const res = await axios.get('/applications/user', {
-          headers: {
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
-        });
-
-        const applied = res.data.some(
-          (application) => application.initiativeId === parseInt(id)
-        );
-        setHasApplied(applied);
-      } catch (err) {
-        console.error(err);
+          const applied = res.data.some(
+            (application) => application.initiativeId === parseInt(id)
+          );
+          setHasApplied(applied);
+        } catch (err) {
+          console.error(err);
+        }
       }
     };
 
@@ -99,11 +99,13 @@ const InitiativeDetail = () => {
   return (
     <div className="container mt-5">
       <h2>{initiative.title}</h2>
-      <img
-        src={initiative.imageUrl}
-        className="img-fluid mb-4"
-        alt={initiative.title}
-      />
+      {initiative.imageUrl && (
+        <img
+          src={initiative.imageUrl}
+          className="img-fluid mb-4"
+          alt={initiative.title}
+        />
+      )}
       <p>{initiative.description}</p>
       <p>
         <strong>Локация:</strong> {initiative.location}
@@ -115,11 +117,11 @@ const InitiativeDetail = () => {
         <strong>Категория:</strong> {initiative.category}
       </p>
       <p>
-        <strong>Организатор:</strong> {initiative.organizer.name} (
-        {initiative.organizer.email})
+        <strong>Организатор:</strong> {initiative.organizer ? initiative.organizer.name : 'N/A'} (
+        {initiative.organizer ? initiative.organizer.email : 'N/A'})
       </p>
 
-      {auth.user.role === 'volunteer' && (
+      {auth.user && auth.user.role === 'volunteer' && (
         <>
           {message && (
             <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
