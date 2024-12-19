@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext'; 
 import { Spinner, Button, Alert } from 'react-bootstrap'; 
 import InitiativesMap from '../components/InitiativesMap'; 
+import './InitiativeDetail.css';
 
 const InitiativeDetail = () => {
   const { id } = useParams();
@@ -120,7 +121,7 @@ const InitiativeDetail = () => {
     );
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5 initiative-detail-container">
       <h2>{initiative.title}</h2>
       {initiative.imageUrl && (
         <img
@@ -142,12 +143,14 @@ const InitiativeDetail = () => {
       </p>
 
       {initiative.latitude && initiative.longitude && (
-        <InitiativesMap
-          latitude={initiative.latitude}
-          longitude={initiative.longitude}
-          title={initiative.title}
-          description={initiative.description}
-        />
+        <div className="initiative-map">
+          <InitiativesMap
+            latitude={initiative.latitude}
+            longitude={initiative.longitude}
+            title={initiative.title}
+            description={initiative.description}
+          />
+        </div>
       )}
 
       {auth.user && auth.user.role === 'volunteer' && (

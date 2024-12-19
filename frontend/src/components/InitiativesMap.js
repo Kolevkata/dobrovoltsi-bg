@@ -46,7 +46,7 @@ const InitiativesMap = () => {
         <div className="initiatives-map">
             <GoogleMap
                 mapContainerStyle={mapContainerStyle}
-                zoom={8}
+                zoom={12}
                 center={center}
                 options={options}
             >

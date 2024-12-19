@@ -95,52 +95,59 @@ const InitiativeList = () => {
     );
 
   return (
-    <div className="container mt-5">
-      <h2>Доброволчески Инициативи</h2>
-
-      {auth?.user?.role === 'volunteer' && message && (
-        <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
-          {message.text}
-        </Alert>
-      )}
-
-      <div className="row">
-        {initiatives.map((initiative) => (
-          <div className="col-md-4 d-flex" key={initiative.id}>
-            <div className="card mb-4 h-100">
-              <img
-                src={initiative.imageUrl}
-                className="card-img-top"
-                alt={initiative.title}
-              />
-              <div className="card-body d-flex flex-column">
-                <h5 className="card-title">{initiative.title}</h5>
-                <p className="card-text">
-                  {initiative.description.substring(0, 100)}...
-                </p>
-                <Link to={`/initiatives/${initiative.id}`} className="btn btn-primary mt-auto mb-2">
-                  Виж повече
-                </Link>
-                {auth?.user?.role === 'volunteer' && (
-                  <Button
-                    variant="success"
-                    onClick={() => handleApply(initiative.id)}
-                    disabled={isApplied(initiative.id) || applyingInitiativeId === initiative.id}
-                  >
-                    {applyingInitiativeId === initiative.id
-                      ? 'Подаване...'
-                      : isApplied(initiative.id)
-                      ? 'Вече сте кандидатствали'
-                      : 'Кандидатстване'}
-                  </Button>
-                )}
+      <div className="container mt-5">
+        <h2>Доброволчески Инициативи</h2>
+    
+        {auth?.user?.role === 'volunteer' && message && (
+          <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
+            {message.text}
+          </Alert>
+        )}
+    
+        {initiatives.length === 0 ? ( // Check if there are no initiatives
+          <Alert variant="info" className="mt-4">
+            Няма активни инициативи
+          </Alert>
+        ) : (
+          <div className="row">
+            {initiatives.map((initiative) => (
+              <div className="col-md-4 d-flex" key={initiative.id}>
+                <div className="card mb-4 h-100">
+                  <img
+                    src={initiative.imageUrl}
+                    className="card-img-top"
+                    alt={initiative.title}
+                  />
+                  <div className="card-body d-flex flex-column">
+                    <h5 className="card-title">{initiative.title}</h5>
+                    <p className="card-text">
+                      {initiative.description.substring(0, 100)}...
+                    </p>
+                    <Link to={`/initiatives/${initiative.id}`} className="btn btn-primary mt-auto mb-2">
+                      Виж повече
+                    </Link>
+                    {auth?.user?.role === 'volunteer' && (
+                      <Button
+                        variant="success"
+                        onClick={() => handleApply(initiative.id)}
+                        disabled={isApplied(initiative.id) || applyingInitiativeId === initiative.id}
+                      >
+                        {applyingInitiativeId === initiative.id
+                          ? 'Подаване...'
+                          : isApplied(initiative.id)
+                          ? 'Вече сте кандидатствали'
+                          : 'Кандидатстване'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    );
+    
 };
 
 export default InitiativeList;

@@ -1,0 +1,10 @@
+.initiative-detail-container {
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.initiative-map {
+    width: 60%;
+    margin-top: 20px;
+     overflow: hidden;
+}

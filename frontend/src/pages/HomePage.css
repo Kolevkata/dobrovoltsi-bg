@@ -68,7 +68,9 @@
 }
 
 .map-section .initiatives-map {
-    width: 100%;
+    width: 70%;
     height: 600px;
     margin-top: 20px;
+    margin: 20px auto; 
+    display: block; 
 }
