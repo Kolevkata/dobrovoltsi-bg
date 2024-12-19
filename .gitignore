@@ -137,3 +137,6 @@ combinedCode.txt
 
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+backend/migrations/*
+!backend/migrations/.gitkeep

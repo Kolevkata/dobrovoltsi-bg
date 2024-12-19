@@ -7,6 +7,7 @@ const applicationRoutes = require('./routes/applicationRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const commentRoutes = require('./routes/commentRoutes'); // Добавено
 const errorHandler = require('./utils/errorHandler');
 require('dotenv').config();
 const Token = require('./models/Token');
@@ -23,6 +24,7 @@ app.use('/api/initiatives', initiativeRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/comments', commentRoutes); // Добавено
 
 app.use(errorHandler);
 
@@ -34,7 +36,7 @@ sequelize.authenticate()
     })
     .then(async() => {
         console.log('Models synchronized with the database');
-        // Ensure admin user exists
+        // Уверете се, че администраторският потребител съществува
         const User = require('./models/User');
         const adminUser = await User.findOne({ where: { email: 'administrator@dobrovoltsibg.com' } });
         if (!adminUser) {

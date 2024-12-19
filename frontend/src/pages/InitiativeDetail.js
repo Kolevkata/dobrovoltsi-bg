@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext'; 
-import { Spinner, Button, Alert } from 'react-bootstrap'; 
+import { Spinner, Button, Alert, Form, Card } from 'react-bootstrap'; 
 import InitiativesMap from '../components/InitiativesMap'; 
 import './InitiativeDetail.css';
 
@@ -17,7 +17,15 @@ const InitiativeDetail = () => {
   const [applying, setApplying] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Fetch initiative details
+  // Коментари
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(true);
+  const [errorComments, setErrorComments] = useState(false);
+  const [newCommentContent, setNewCommentContent] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentMessage, setCommentMessage] = useState(null);
+
+  // Вземане на детайли за инициативата
   useEffect(() => {
     const fetchInitiative = async () => {
       try {
@@ -34,7 +42,7 @@ const InitiativeDetail = () => {
     fetchInitiative();
   }, [id]);
 
-  // Check if the volunteer has already applied
+  // Проверка дали доброволецът вече е кандидатствал
   useEffect(() => {
     const fetchApplication = async () => {
       if (auth.user && auth.user.role === 'volunteer') {
@@ -59,6 +67,23 @@ const InitiativeDetail = () => {
 
     fetchApplication();
   }, [auth, id]);
+
+  // Вземане на коментари
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(`/initiatives/${id}/comments`);
+        setComments(res.data);
+      } catch (err) {
+        console.error(err);
+        setErrorComments(true);
+      } finally {
+        setLoadingComments(false);
+      }
+    };
+
+    fetchComments();
+  }, [id]);
 
   const handleApply = async () => {
     setApplying(true);
@@ -103,6 +128,60 @@ const InitiativeDetail = () => {
       setMessage({
         type: 'danger',
         text: err.response?.data?.msg || 'Грешка при изтриване на кандидатурата',
+      });
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newCommentContent.trim()) {
+      setCommentMessage({ type: 'danger', text: 'Коментарът не може да бъде празен.' });
+      return;
+    }
+
+    setSubmittingComment(true);
+    setCommentMessage(null);
+
+    try {
+      const res = await axios.post(
+        `/initiatives/${id}/comments`,
+        { content: newCommentContent },
+        {
+          headers: {
+            Authorization: `Bearer ${auth.accessToken}`,
+          },
+        }
+      );
+      setComments([...comments, res.data]);
+      setNewCommentContent('');
+      setCommentMessage({ type: 'success', text: 'Коментарът е добавен успешно.' });
+    } catch (err) {
+      console.error(err.response?.data || err);
+      setCommentMessage({
+        type: 'danger',
+        text: err.response?.data?.msg || 'Грешка при добавяне на коментар',
+      });
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Сигурни ли сте, че искате да изтриете този коментар?')) return;
+
+    try {
+      await axios.delete(`/comments/${commentId}`, {
+        headers: {
+          Authorization: `Bearer ${auth.accessToken}`,
+        },
+      });
+      setComments(comments.filter(comment => comment.id !== commentId));
+      setCommentMessage({ type: 'success', text: 'Коментарът е изтрит успешно.' });
+    } catch (err) {
+      console.error(err.response?.data || err);
+      setCommentMessage({
+        type: 'danger',
+        text: err.response?.data?.msg || 'Грешка при изтриване на коментара',
       });
     }
   };
@@ -153,6 +232,65 @@ const InitiativeDetail = () => {
         </div>
       )}
 
+      {/* Секция за коментари */}
+      <div className="mt-5">
+        <h3>Коментари</h3>
+        {commentMessage && (
+          <Alert variant={commentMessage.type} onClose={() => setCommentMessage(null)} dismissible>
+            {commentMessage.text}
+          </Alert>
+        )}
+        {auth.user ? (
+          <Form onSubmit={handleAddComment} className="mb-4">
+            <Form.Group controlId="commentContent">
+              <Form.Label>Добавете коментар:</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={newCommentContent}
+                onChange={(e) => setNewCommentContent(e.target.value)}
+                placeholder="Напишете вашия коментар..."
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="mt-2" disabled={submittingComment}>
+              {submittingComment ? 'Добавяне...' : 'Добавяне на коментар'}
+            </Button>
+          </Form>
+        ) : (
+          <Alert variant="info">Моля, влезте или се регистрирайте, за да добавите коментари.</Alert>
+        )}
+
+        {loadingComments ? (
+          <div className="text-center">
+            <Spinner animation="border" />
+          </div>
+        ) : errorComments ? (
+          <Alert variant="danger">Грешка при зареждане на коментарите.</Alert>
+        ) : comments.length === 0 ? (
+          <Alert variant="info">Няма коментари за тази инициатива.</Alert>
+        ) : (
+          <div>
+            {comments.map(comment => (
+              <div key={comment.id} className="mb-3">
+                <Card>
+                  <Card.Body>
+                    <Card.Title>{comment.user.name}</Card.Title>
+                    <Card.Subtitle className="mb-2 text-muted">{new Date(comment.createdAt).toLocaleString()}</Card.Subtitle>
+                    <Card.Text>{comment.content}</Card.Text>
+                    {(auth.user && (auth.user.id === comment.userId || auth.user.role === 'admin')) && (
+                      <Button variant="danger" size="sm" onClick={() => handleDeleteComment(comment.id)}>
+                        Изтриване
+                      </Button>
+                    )}
+                  </Card.Body>
+                </Card>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Секция за кандидатура (само за доброволци) */}
       {auth.user && auth.user.role === 'volunteer' && (
         <>
           {message && (
