@@ -15,13 +15,14 @@ export const AuthProvider = ({ children }) => {
     user: JSON.parse(localStorage.getItem('user')),
   });
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setAuth({ accessToken: null, refreshToken: null, user: null });
-  };
+    navigate('/login');
+  }, [navigate]);
 
   const refreshAccessToken = useCallback(async () => {
     try {
@@ -45,10 +46,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to refresh token:', error);
       logout();
-      navigate('/login');
       return null;
     }
-  }, [auth.refreshToken, navigate]);
+  }, [auth.refreshToken, logout]);
 
   useEffect(() => {
     if (auth.accessToken) {
@@ -81,6 +81,8 @@ export const AuthProvider = ({ children }) => {
           const newAccessToken = await refreshAccessToken();
           if (newAccessToken) {
             config.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          } else {
+            return Promise.reject(new Error('Неуспешно обновяване на токена'));
           }
         }
         return config;

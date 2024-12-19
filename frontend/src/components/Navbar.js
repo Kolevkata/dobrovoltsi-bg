@@ -46,7 +46,9 @@ const Navbar = () => {
                 </NavLink>
               </li>
             )}
-            {isAuthenticated && (
+
+            {/* Dashboard Link for Non-Admin Authenticated Users */}
+            {isAuthenticated && auth.user.role !== 'admin' && (
               <li className="nav-item">
                 <NavLink className={getNavLinkClass} to="/dashboard">
                   Dashboard
@@ -97,6 +99,20 @@ const Navbar = () => {
                       Смяна на Парола
                     </NavLink>
                   </li>
+                  {auth.user.role === 'admin' && (
+                    <>
+                      <li>
+                        <NavLink className="dropdown-item" to="/admin/users">
+                          Управление на Потребители
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink className="dropdown-item" to="/admin/metrics">
+                          Метрики
+                        </NavLink>
+                      </li>
+                    </>
+                  )}
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
