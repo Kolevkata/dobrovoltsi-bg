@@ -1,7 +1,7 @@
 // /frontend/src/pages/InitiativeList.js
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-import InitiativeCard from '../components/InitiativeCard';
+// import InitiativeCard from '../components/InitiativeCard';
 import { AuthContext } from '../contexts/AuthContext';
 import { Spinner, Button, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';

@@ -1,4 +1,4 @@
-// /models/Initiative.js
+// /backend/models/Initiative.js
 const { Sequelize, DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 const User = require('./User');
@@ -10,10 +10,6 @@ const Initiative = sequelize.define('Initiative', {
     },
     description: {
         type: DataTypes.TEXT,
-        allowNull: false,
-    },
-    location: {
-        type: DataTypes.STRING,
         allowNull: false,
     },
     date: {
@@ -30,10 +26,22 @@ const Initiative = sequelize.define('Initiative', {
     },
     approved: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false, // Admin must approve
+        defaultValue: false, // Admin трябва да одобри
+    },
+    address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    latitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+    },
+    longitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
     },
 }, {
-    // Settings
+    // Настройки
 });
 
 User.hasMany(Initiative, { foreignKey: 'organizerId' });

@@ -5,6 +5,7 @@ import logo from '../logo.svg';
 import './HomePage.css';
 import { AuthContext } from '../contexts/AuthContext';
 import { Button } from 'react-bootstrap';
+import InitiativesMap from '../components/InitiativesMap';
 
 const HomePage = () => {
   const { auth, logout } = useContext(AuthContext);
@@ -96,6 +97,13 @@ const HomePage = () => {
               </>
             )}
           </div>
+        </div>
+      </section>
+
+      <section className="map-section py-5">
+        <div className="container">
+          <h2 className="text-center mb-4">Всички Инициативи на Карта</h2>
+          <InitiativesMap />
         </div>
       </section>
     </div>

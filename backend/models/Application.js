@@ -1,25 +1,36 @@
-// /models/Application.js
+// /backend/models/Application.js
 const { Sequelize, DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
-const User = require('./User');
 const Initiative = require('./Initiative');
+const User = require('./User');
 
 const Application = sequelize.define('Application', {
     status: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'Pending', // Статус на кандидатурата
+        defaultValue: 'Pending',
     },
-}, {
-    // Допълнителни настройки
-});
+    volunteerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: User,
+            key: 'id',
+        },
+        onDelete: 'CASCADE',
+    },
+    initiativeId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Initiative,
+            key: 'id',
+        },
+        onDelete: 'CASCADE',
+    },
+}, {});
 
-// Връзка с потребителя (доброволец)
-User.hasMany(Application, { foreignKey: 'volunteerId' });
-Application.belongsTo(User, { foreignKey: 'volunteerId', as: 'volunteer' });
-
-// Връзка с инициатива
-Initiative.hasMany(Application, { foreignKey: 'initiativeId' });
 Application.belongsTo(Initiative, { foreignKey: 'initiativeId', as: 'initiative' });
+Application.belongsTo(User, { foreignKey: 'volunteerId', as: 'volunteer' });
 
 module.exports = Application;

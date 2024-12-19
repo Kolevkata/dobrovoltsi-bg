@@ -134,3 +134,6 @@ generateCodeTxt.js
 project_code.txt
 combineJs.js
 combinedCode.txt
+
+backend/uploads/*
+!backend/uploads/.gitkeep

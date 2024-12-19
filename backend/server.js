@@ -10,8 +10,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const errorHandler = require('./utils/errorHandler');
 require('dotenv').config();
 const Token = require('./models/Token');
+const morgan = require("morgan");
 
 const app = express();
+app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
@@ -28,6 +30,7 @@ sequelize.authenticate()
     .then(() => {
         console.log('Database connected...');
         sequelize.sync()
+            //sequelize.sync({ alter: true }) - Това се разкоментира когато сме добавили нови полета в базата данни и се коментира горното, след това обратното
     })
     .then(async() => {
         console.log('Models synchronized with the database');

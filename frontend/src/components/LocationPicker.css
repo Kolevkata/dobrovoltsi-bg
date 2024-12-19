@@ -1,0 +1,11 @@
+/* /src/components/LocationPicker.css */
+
+.location-picker {
+    width: 100%;
+}
+
+.location-picker input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+}

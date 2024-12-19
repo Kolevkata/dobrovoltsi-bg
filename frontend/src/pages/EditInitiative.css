@@ -1,18 +1,18 @@
 /* /src/pages/EditInitiative.css */
 
-.add-initiative {
+.edit-initiative {
     max-width: 800px;
     margin: 0 auto;
 }
 
-.add-initiative .form-group {
+.edit-initiative .form-group {
     margin-bottom: 20px;
 }
 
-.add-initiative label {
+.edit-initiative label {
     font-weight: bold;
 }
 
-.add-initiative .btn {
+.edit-initiative .btn {
     width: 100%;
 }

@@ -34,7 +34,7 @@ exports.applyToInitiative = async(req, res) => {
     }
 };
 
-// Получаване на всички кандидатури за инициатива (само за организаторите)
+// Получаване на всички кандидатури за инициатива (само за организаторите и admin)
 exports.getApplicationsByInitiative = async(req, res) => {
     const { initiativeId } = req.params;
 
@@ -44,8 +44,8 @@ exports.getApplicationsByInitiative = async(req, res) => {
             return res.status(404).json({ msg: 'Иницииативата не е намерена' });
         }
 
-        // Проверка дали потребителят е организатор
-        if (initiative.organizerId !== req.user.id) {
+        // Проверка дали потребителят е организатор или admin
+        if (initiative.organizerId !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({ msg: 'Неоторизиран достъп' });
         }
 
@@ -75,15 +75,18 @@ exports.updateApplicationStatus = async(req, res) => {
             return res.status(404).json({ msg: 'Кандидатурата не е намерена' });
         }
 
-        // Проверка дали потребителят е организатор
-        if (application.initiative.organizerId !== req.user.id) {
+        // Проверка дали потребителят е организатор или admin
+        if (application.initiative.organizerId !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({ msg: 'Неоторизиран достъп' });
         }
 
-        application.status = status || application.status;
-        await application.save();
-
-        res.json(application);
+        if (status && ['Approved', 'Denied'].includes(status)) {
+            application.status = status;
+            await application.save();
+            res.json(application);
+        } else {
+            res.status(400).json({ msg: 'Невалиден статус' });
+        }
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Грешка в сървъра');
@@ -100,7 +103,7 @@ exports.getUserApplications = async(req, res) => {
             include: [{
                 model: Initiative,
                 as: 'initiative',
-                attributes: ['id', 'title', 'description', 'location', 'date', 'category', 'imageUrl']
+                attributes: ['id', 'title', 'description', 'date', 'category', 'imageUrl']
             }],
         });
 
@@ -116,7 +119,6 @@ exports.getApplicationsForOrganizer = async(req, res) => {
     const organizerId = req.user.id;
 
     try {
-        // Намерете всички инициативи на организатора
         const initiatives = await Initiative.findAll({
             where: { organizerId },
             attributes: ['id'],
@@ -124,7 +126,6 @@ exports.getApplicationsForOrganizer = async(req, res) => {
 
         const initiativeIds = initiatives.map(initiative => initiative.id);
 
-        // Намерете всички кандидатури за тези инициативи
         const applications = await Application.findAll({
             where: { initiativeId: initiativeIds },
             include: [{
@@ -139,6 +140,32 @@ exports.getApplicationsForOrganizer = async(req, res) => {
         });
 
         res.json(applications);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Грешка в сървъра');
+    }
+};
+
+// Добавено: Изтриване на кандидатура
+exports.deleteApplication = async(req, res) => {
+    const { applicationId } = req.params;
+
+    try {
+        const application = await Application.findByPk(applicationId, {
+            include: [{ model: Initiative, as: 'initiative' }],
+        });
+
+        if (!application) {
+            return res.status(404).json({ msg: 'Кандидатурата не е намерена' });
+        }
+
+        // Проверка дали потребителят е доброволецът, който е създал кандидатурата или е admin
+        if (application.volunteerId !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ msg: 'Неоторизиран достъп' });
+        }
+
+        await application.destroy();
+        res.json({ msg: 'Кандидатурата е изтрита успешно' });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Грешка в сървъра');

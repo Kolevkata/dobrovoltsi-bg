@@ -2,10 +2,10 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
-// import InitiativeCard from '../components/InitiativeCard';
 import { Link } from 'react-router-dom';
 import ApplicationsList from '../components/ApplicationsList'; 
 import { Spinner, Alert, Badge } from 'react-bootstrap';
+import InitiativesMap from '../components/InitiativesMap'; 
 
 const Dashboard = () => {
   const { auth } = useContext(AuthContext);
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [loadingApplications, setLoadingApplications] = useState(true);
   const [errorInitiatives, setErrorInitiatives] = useState(false);
   const [errorApplications, setErrorApplications] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const fetchInitiatives = useCallback(async () => {
     try {
@@ -23,7 +24,7 @@ const Dashboard = () => {
           Authorization: `Bearer ${auth.accessToken}`,
         },
       });
-      // For organizer: server returns approved + their own unapproved
+      // За организатор: филтриране на инициативите по организаторId
       const organizerInitiatives = res.data.filter(
         (initiative) => initiative.organizerId === auth.user.id
       );
@@ -86,7 +87,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteInitiative = async (id) => {
     if (window.confirm('Сигурни ли сте, че искате да изтриете тази инициатива?')) {
       try {
         await axios.delete(`/initiatives/${id}`, {
@@ -95,9 +96,10 @@ const Dashboard = () => {
           },
         });
         setInitiatives(initiatives.filter((initiative) => initiative.id !== id));
+        setMessage('Инициативата е изтрита успешно.');
       } catch (err) {
         console.error(err.response?.data || err);
-        alert(err.response?.data?.msg || 'Грешка при изтриване на инициативата');
+        setErrorInitiatives('Грешка при изтриване на инициативата.');
       }
     }
   };
@@ -111,6 +113,11 @@ const Dashboard = () => {
           <Link to="/initiatives/add" className="btn btn-success mb-4">
             Добавяне на нова инициатива
           </Link>
+
+          <div className="mb-4">
+            <InitiativesMap initiatives={initiatives} />
+          </div>
+
           {loadingInitiatives ? (
             <div className="text-center">
               <Spinner animation="border" />
@@ -144,7 +151,7 @@ const Dashboard = () => {
                         </Link>
                         <button
                           className="btn btn-danger"
-                          onClick={() => handleDelete(initiative.id)}
+                          onClick={() => handleDeleteInitiative(initiative.id)}
                         >
                           Изтриване
                         </button>
@@ -157,6 +164,11 @@ const Dashboard = () => {
           )}
 
           <h3 className="mt-5">Кандидатури за вашите инициативи</h3>
+          {message && (
+            <Alert variant="success" dismissible onClose={() => setMessage(null)}>
+              {message}
+            </Alert>
+          )}
           {loadingApplications ? (
             <div className="text-center">
               <Spinner animation="border" />
@@ -189,6 +201,7 @@ const Dashboard = () => {
             <ApplicationsList
               applications={applications}
               isVolunteer={true}
+              refreshApplications={refreshApplications}
             />
           )}
         </>

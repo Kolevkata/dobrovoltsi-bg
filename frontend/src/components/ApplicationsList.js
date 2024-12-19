@@ -3,6 +3,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext'; // Imported AuthContext
+import { Button } from 'react-bootstrap';
 
 const ApplicationsList = ({ applications, isVolunteer = false, refreshApplications }) => {
   const { auth } = useContext(AuthContext); // Access auth context
@@ -25,6 +26,22 @@ const ApplicationsList = ({ applications, isVolunteer = false, refreshApplicatio
     }
   };
 
+  const handleDelete = async (applicationId) => {
+    if (!window.confirm('Сигурни ли сте, че искате да изтриете тази кандидатура?')) return;
+    try {
+      await axios.delete(`/applications/${applicationId}`, {
+        headers: {
+          Authorization: `Bearer ${auth.accessToken}`,
+        },
+      });
+      alert('Кандидатурата е изтрита успешно.');
+      refreshApplications(); // Refresh the list after deletion
+    } catch (err) {
+      console.error(err.response?.data || err);
+      alert(err.response?.data?.msg || 'Грешка при изтриване на кандидатурата');
+    }
+  };
+
   return (
     <div className="applications-list">
       <table className="table table-striped">
@@ -34,6 +51,7 @@ const ApplicationsList = ({ applications, isVolunteer = false, refreshApplicatio
               <>
                 <th>Инициатива</th>
                 <th>Статус</th>
+                <th>Действия</th>
               </>
             ) : (
               <>
@@ -56,6 +74,16 @@ const ApplicationsList = ({ applications, isVolunteer = false, refreshApplicatio
                     </Link>
                   </td>
                   <td>{application.status}</td>
+                  <td>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(application.id)}
+                      disabled={application.status === 'Approved' || application.status === 'Denied'}
+                    >
+                      Изтриване
+                    </Button>
+                  </td>
                 </>
               ) : (
                 <>
@@ -67,20 +95,34 @@ const ApplicationsList = ({ applications, isVolunteer = false, refreshApplicatio
                   </td>
                   <td>{application.status}</td>
                   <td>
-                    <button
-                      className="btn btn-sm btn-success me-2"
+                    <Button
+                      variant="success"
+                      size="sm"
+                      className="me-2"
                       onClick={() => handleStatusChange(application.id, 'Approved')}
                       disabled={application.status === 'Approved'}
                     >
                       Одобряване
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      className="me-2"
                       onClick={() => handleStatusChange(application.id, 'Denied')}
                       disabled={application.status === 'Denied'}
                     >
                       Отхвърляне
-                    </button>
+                    </Button>
+                    {auth.user.role === 'admin' && (
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        onClick={() => handleDelete(application.id)}
+                        disabled={false}
+                      >
+                        Изтриване
+                      </Button>
+                    )}
                   </td>
                 </>
               )}
