@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import LocationPicker from '../components/LocationPicker';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Card, Button, Alert, Spinner } from 'react-bootstrap';
 
 const AddInitiativeSchema = Yup.object().shape({
   title: Yup.string()
@@ -23,6 +24,17 @@ const AddInitiativeSchema = Yup.object().shape({
     .required('Категорията е задължителна'),
 });
 
+const CATEGORIES = [
+  {value: '', label:'Изберете категория'},
+  {value: 'environment', label:'Околна среда'},
+  {value: 'education', label:'Образование'},
+  {value: 'social', label:'Социална помощ'},
+  {value: 'health', label:'Здравеопазване'},
+  {value: 'culture', label:'Култура'},
+  {value: 'animal', label:'Животни'},
+  {value: 'other', label:'Друго'}
+];
+
 const AddInitiative = () => {
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -35,8 +47,9 @@ const AddInitiative = () => {
   if (auth.user.role !== 'organizer' && auth.user.role !== 'admin') {
     return (
       <div className="container mt-5">
-        <h2>Неоторизиран достъп</h2>
-        <p>Само организаторите или администраторите могат да добавят нови инициативи.</p>
+        <Alert variant="danger">
+          Неоторизиран достъп. Само организаторите или администраторите могат да добавят нови инициативи.
+        </Alert>
       </div>
     );
   }
@@ -86,74 +99,85 @@ const AddInitiative = () => {
   };
 
   return (
-    <div className="container mt-5 add-initiative">
-      <h2>Добавяне на нова инициатива</h2>
-      <Formik
-        initialValues={initialValues}
-        validationSchema={AddInitiativeSchema}
-        onSubmit={onSubmit}
-      >
-        {({ isSubmitting, errors, setFieldValue, values }) => (
-          <Form>
-            {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
-            
-            <div className="form-group">
-              <label htmlFor="title">Заглавие</label>
-              <Field type="text" name="title" className="form-control" />
-              <ErrorMessage name="title" component="div" className="text-danger" />
-            </div>
+    <div className="container mt-5 add-initiative d-flex justify-content-center">
+      <Card className="p-4 shadow-sm" style={{maxWidth: '700px', width:'100%'}}>
+        <div className="d-flex justify-content-start align-items-center mb-4">
+          <Button variant="secondary" className="me-3" onClick={() => navigate(-1)}>
+            <i className="fas fa-arrow-left"></i>
+          </Button>
+          <h2 className="mb-0">Добавяне на нова инициатива</h2>
+        </div>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={AddInitiativeSchema}
+          onSubmit={onSubmit}
+        >
+          {({ isSubmitting, errors, setFieldValue, values }) => (
+            <Form>
+              {errors.submit && <Alert variant="danger">{errors.submit}</Alert>}
+              
+              <div className="form-group mb-3">
+                <label htmlFor="title" className="fw-bold">Заглавие</label>
+                <Field type="text" name="title" className="form-control" />
+                <ErrorMessage name="title" component="div" className="text-danger mt-1" />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="description">Описание</label>
-              <Field as="textarea" name="description" className="form-control" />
-              <ErrorMessage name="description" component="div" className="text-danger" />
-            </div>
+              <div className="form-group mb-3">
+                <label htmlFor="description" className="fw-bold">Описание</label>
+                <Field as="textarea" name="description" className="form-control" rows="4"/>
+                <ErrorMessage name="description" component="div" className="text-danger mt-1" />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="date">Дата</label>
-              <DatePicker
-                selected={values.date ? new Date(values.date) : null}
-                onChange={date => setFieldValue('date', date)}
-                className="form-control"
-                dateFormat="yyyy-MM-dd"
-              />
-              <ErrorMessage name="date" component="div" className="text-danger" />
-            </div>
+              <div className="form-group mb-3">
+                <label htmlFor="date" className="fw-bold">Дата</label>
+                <DatePicker
+                  selected={values.date ? new Date(values.date) : null}
+                  onChange={date => setFieldValue('date', date)}
+                  className="form-control"
+                  dateFormat="yyyy-MM-dd"
+                />
+                <ErrorMessage name="date" component="div" className="text-danger mt-1" />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="category">Категория</label>
-              <Field type="text" name="category" className="form-control" />
-              <ErrorMessage name="category" component="div" className="text-danger" />
-            </div>
+              <div className="form-group mb-3">
+                <label htmlFor="category" className="fw-bold">Категория</label>
+                <Field as="select" name="category" className="form-control">
+                  {CATEGORIES.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </Field>
+                <ErrorMessage name="category" component="div" className="text-danger mt-1" />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="image">Изображение</label>
-              <input 
-                type="file" 
-                name="image" 
-                className="form-control"
-                onChange={(event) => {
-                  setFieldValue('image', event.currentTarget.files[0]);
-                }}
-              />
-            </div>
+              <div className="form-group mb-3">
+                <label htmlFor="image" className="fw-bold">Изображение (опционално)</label>
+                <input 
+                  type="file" 
+                  name="image" 
+                  className="form-control"
+                  onChange={(event) => {
+                    setFieldValue('image', event.currentTarget.files[0]);
+                  }}
+                />
+              </div>
 
-            <div className="form-group mt-4">
-              <label>Изберете Локация на Картата</label>
-              <LocationPicker onSelect={(location) => setSelectedLocation(location)} />
-              {selectedLocation.address && (
-                <div className="mt-2">
-                  <strong>Избрана Адреса:</strong> {selectedLocation.address}
-                </div>
-              )}
-            </div>
+              <div className="form-group mt-4 mb-3">
+                <label className="fw-bold">Изберете Локация на Картата</label>
+                <LocationPicker onSelect={(location) => setSelectedLocation(location)} />
+                {selectedLocation.address && (
+                  <div className="mt-2">
+                    <strong>Избрана Адреса:</strong> {selectedLocation.address}
+                  </div>
+                )}
+              </div>
 
-            <button type="submit" className="btn btn-primary mt-3" disabled={isSubmitting}>
-              {isSubmitting ? 'Добавяне...' : 'Добавяне'}
-            </button>
-          </Form>
-        )}
-      </Formik>
+              <Button type="submit" variant="primary" className="w-100 mt-3" disabled={isSubmitting}>
+                {isSubmitting ? <Spinner as="span" animation="border" size="sm" /> : 'Добавяне'}
+              </Button>
+            </Form>
+          )}
+        </Formik>
+      </Card>
     </div>
   );
 };

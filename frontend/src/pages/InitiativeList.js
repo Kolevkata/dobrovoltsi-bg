@@ -1,7 +1,6 @@
 // /frontend/src/pages/InitiativeList.js
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-// import InitiativeCard from '../components/InitiativeCard';
 import { AuthContext } from '../contexts/AuthContext';
 import { Spinner, Button, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -15,6 +14,8 @@ const InitiativeList = () => {
   const [userApplications, setUserApplications] = useState([]);
   const [applyingInitiativeId, setApplyingInitiativeId] = useState(null);
   const [message, setMessage] = useState(null);
+
+  const userRole = auth.user?.role;
 
   useEffect(() => {
     const fetchInitiatives = async () => {
@@ -33,7 +34,7 @@ const InitiativeList = () => {
   }, []);
 
   useEffect(() => {
-    if (auth?.user?.role === 'volunteer') {
+    if (userRole === 'volunteer') {
       const fetchUserApplications = async () => {
         try {
           const res = await axios.get('/applications/user', {
@@ -48,7 +49,7 @@ const InitiativeList = () => {
       };
       fetchUserApplications();
     }
-  }, [auth]);
+  }, [auth.accessToken, userRole]);
 
   const handleApply = async (initiativeId) => {
     setApplyingInitiativeId(initiativeId);
@@ -95,59 +96,58 @@ const InitiativeList = () => {
     );
 
   return (
-      <div className="container mt-5">
-        <h2>Доброволчески Инициативи</h2>
-    
-        {auth?.user?.role === 'volunteer' && message && (
-          <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
-            {message.text}
-          </Alert>
-        )}
-    
-        {initiatives.length === 0 ? ( // Check if there are no initiatives
-          <Alert variant="info" className="mt-4">
-            Няма активни инициативи
-          </Alert>
-        ) : (
-          <div className="row">
-            {initiatives.map((initiative) => (
-              <div className="col-md-4 d-flex" key={initiative.id}>
-                <div className="card mb-4 h-100">
-                  <img
-                    src={initiative.imageUrl}
-                    className="card-img-top"
-                    alt={initiative.title}
-                  />
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title">{initiative.title}</h5>
-                    <p className="card-text">
-                      {initiative.description.substring(0, 100)}...
-                    </p>
-                    <Link to={`/initiatives/${initiative.id}`} className="btn btn-primary mt-auto mb-2">
-                      Виж повече
-                    </Link>
-                    {auth?.user?.role === 'volunteer' && (
-                      <Button
-                        variant="success"
-                        onClick={() => handleApply(initiative.id)}
-                        disabled={isApplied(initiative.id) || applyingInitiativeId === initiative.id}
-                      >
-                        {applyingInitiativeId === initiative.id
-                          ? 'Подаване...'
-                          : isApplied(initiative.id)
-                          ? 'Вече сте кандидатствали'
-                          : 'Кандидатстване'}
-                      </Button>
-                    )}
-                  </div>
+    <div className="container mt-5">
+      <h2>Доброволчески Инициативи</h2>
+
+      {userRole === 'volunteer' && message && (
+        <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
+          {message.text}
+        </Alert>
+      )}
+
+      {initiatives.length === 0 ? (
+        <Alert variant="info" className="mt-4">
+          Няма активни инициативи
+        </Alert>
+      ) : (
+        <div className="row">
+          {initiatives.map((initiative) => (
+            <div className="col-md-4 d-flex" key={initiative.id}>
+              <div className="card mb-4 h-100">
+                <img
+                  src={initiative.imageUrl}
+                  className="card-img-top"
+                  alt={initiative.title}
+                />
+                <div className="card-body d-flex flex-column">
+                  <h5 className="card-title">{initiative.title}</h5>
+                  <p className="card-text">
+                    {initiative.description.substring(0, 100)}...
+                  </p>
+                  <Link to={`/initiatives/${initiative.id}`} className="btn btn-primary mt-auto mb-2">
+                    Виж повече
+                  </Link>
+                  {userRole === 'volunteer' && (
+                    <Button
+                      variant="success"
+                      onClick={() => handleApply(initiative.id)}
+                      disabled={isApplied(initiative.id) || applyingInitiativeId === initiative.id}
+                    >
+                      {applyingInitiativeId === initiative.id
+                        ? 'Подаване...'
+                        : isApplied(initiative.id)
+                        ? 'Вече сте кандидатствали'
+                        : 'Кандидатстване'}
+                    </Button>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-    
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default InitiativeList;

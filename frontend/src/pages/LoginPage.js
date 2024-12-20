@@ -6,6 +6,7 @@ import * as Yup from 'yup';
 import './LoginPage.css';
 import { AuthContext } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Card, Button, Alert, Spinner } from 'react-bootstrap';
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -31,7 +32,7 @@ const LoginPage = () => {
       const { accessToken, refreshToken, user } = res.data;
       login(accessToken, refreshToken, user);
       resetForm();
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       console.error(err.response?.data || err);
       setErrors({ submit: err.response?.data?.message || 'Грешка при входа' });
@@ -41,34 +42,39 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Вход</h2>
-      <Formik
-        initialValues={initialValues}
-        validationSchema={LoginSchema}
-        onSubmit={onSubmit}
-      >
-        {({ isSubmitting, errors }) => (
-          <Form>
-            {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
-            <div className="form-group">
-              <label htmlFor="email">Имейл</label>
-              <Field type="email" name="email" className="form-control" />
-              <ErrorMessage name="email" component="div" className="text-danger" />
-            </div>
+    <div className="container mt-5 d-flex justify-content-center">
+      <Card className="p-4 shadow-sm" style={{maxWidth: '500px', width: '100%'}}>
+        <h2 className="mb-4 text-center">Вход</h2>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={LoginSchema}
+          onSubmit={onSubmit}
+        >
+          {({ isSubmitting, errors }) => (
+            <Form>
+              {errors.submit && <Alert variant="danger">{errors.submit}</Alert>}
+              <div className="form-group mb-3">
+                <label htmlFor="email">Имейл</label>
+                <Field type="email" name="email" className="form-control" />
+                <ErrorMessage name="email" component="div" className="text-danger mt-1" />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="password">Парола</label>
-              <Field type="password" name="password" className="form-control" />
-              <ErrorMessage name="password" component="div" className="text-danger" />
-            </div>
+              <div className="form-group mb-3">
+                <label htmlFor="password">Парола</label>
+                <Field type="password" name="password" className="form-control" />
+                <ErrorMessage name="password" component="div" className="text-danger mt-1" />
+              </div>
 
-            <button type="submit" className="btn btn-primary mt-3" disabled={isSubmitting}>
-              {isSubmitting ? 'Вход...' : 'Вход'}
-            </button>
-          </Form>
-        )}
-      </Formik>
+              <Button type="submit" className="w-100 mt-3" variant="primary" disabled={isSubmitting}>
+                {isSubmitting ? <Spinner as="span" animation="border" size="sm" /> : 'Вход'}
+              </Button>
+            </Form>
+          )}
+        </Formik>
+        <div className="text-center mt-3">
+          <small>Нямате акаунт? <a href="/register">Регистрация</a></small>
+        </div>
+      </Card>
     </div>
   );
 };

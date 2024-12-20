@@ -1,11 +1,21 @@
 // /src/pages/InitiativeDetail.js
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext'; 
-import { Spinner, Button, Alert, Form, Card } from 'react-bootstrap'; 
+import { Spinner, Button, Alert, Form, Card, Badge } from 'react-bootstrap'; 
 import InitiativesMap from '../components/InitiativesMap'; 
 import './InitiativeDetail.css';
+
+const CATEGORY_LABELS = {
+  environment: 'Околна среда',
+  education: 'Образование',
+  social: 'Социална помощ',
+  health: 'Здравеопазване',
+  culture: 'Култура',
+  animal: 'Животни',
+  other: 'Друго'
+};
 
 const InitiativeDetail = () => {
   const { id } = useParams();
@@ -16,8 +26,9 @@ const InitiativeDetail = () => {
   const [application, setApplication] = useState(null); 
   const [applying, setApplying] = useState(false);
   const [message, setMessage] = useState(null);
+  const navigate = useNavigate();
 
-  // Коментари
+  // Comments
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const [errorComments, setErrorComments] = useState(false);
@@ -25,7 +36,6 @@ const InitiativeDetail = () => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [commentMessage, setCommentMessage] = useState(null);
 
-  // Вземане на детайли за инициативата
   useEffect(() => {
     const fetchInitiative = async () => {
       try {
@@ -42,7 +52,6 @@ const InitiativeDetail = () => {
     fetchInitiative();
   }, [id]);
 
-  // Проверка дали доброволецът вече е кандидатствал
   useEffect(() => {
     const fetchApplication = async () => {
       if (auth.user && auth.user.role === 'volunteer') {
@@ -53,11 +62,11 @@ const InitiativeDetail = () => {
             },
           });
 
-          const application = res.data.find(
+          const foundApplication = res.data.find(
             (app) => app.initiativeId === parseInt(id)
           );
-          if (application) {
-            setApplication(application);
+          if (foundApplication) {
+            setApplication(foundApplication);
           }
         } catch (err) {
           console.error(err);
@@ -68,7 +77,6 @@ const InitiativeDetail = () => {
     fetchApplication();
   }, [auth, id]);
 
-  // Вземане на коментари
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -192,87 +200,133 @@ const InitiativeDetail = () => {
         <Spinner animation="border" />
       </div>
     );
-  if (error)
+  if (error || !initiative)
     return (
       <div className="container mt-5">
-        <Alert variant="danger">Грешка при зареждане на инициативата.</Alert>
+        <Alert variant="danger">Грешка при зареждане на инициативата или инициативата не съществува.</Alert>
       </div>
     );
 
+  const categoryLabel = CATEGORY_LABELS[initiative.category] || 'Друго';
+
   return (
     <div className="container mt-5 initiative-detail-container">
-      <h2>{initiative.title}</h2>
-      {initiative.imageUrl && (
-        <img
-          src={initiative.imageUrl}
-          className="img-fluid mb-4"
-          alt={initiative.title}
-        />
-      )}
-      <p>{initiative.description}</p>
-      <p>
-        <strong>Дата:</strong> {new Date(initiative.date).toLocaleDateString()}
-      </p>
-      <p>
-        <strong>Категория:</strong> {initiative.category}
-      </p>
-      <p>
-        <strong>Организатор:</strong> {initiative.organizer ? initiative.organizer.name : 'N/A'} (
-        {initiative.organizer ? initiative.organizer.email : 'N/A'})
-      </p>
+      <div className="d-flex align-items-center mb-4">
+        <Button variant="secondary" className="me-3" onClick={() => navigate(-1)}>
+          <i className="fas fa-arrow-left"></i>
+        </Button>
+        <h2 className="mb-0">Детайли за Инициативата</h2>
+      </div>
 
-      {initiative.latitude && initiative.longitude && (
-        <div className="initiative-map">
-          <InitiativesMap
-            latitude={initiative.latitude}
-            longitude={initiative.longitude}
-            title={initiative.title}
-            description={initiative.description}
-          />
-        </div>
-      )}
-
-      {/* Секция за коментари */}
-      <div className="mt-5">
-        <h3>Коментари</h3>
-        {commentMessage && (
-          <Alert variant={commentMessage.type} onClose={() => setCommentMessage(null)} dismissible>
-            {commentMessage.text}
-          </Alert>
-        )}
-        {auth.user ? (
-          <Form onSubmit={handleAddComment} className="mb-4">
-            <Form.Group controlId="commentContent">
-              <Form.Label>Добавете коментар:</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={newCommentContent}
-                onChange={(e) => setNewCommentContent(e.target.value)}
-                placeholder="Напишете вашия коментар..."
+      <Card className="mb-4 shadow-sm">
+        <Card.Body>
+          <div className="d-flex flex-column flex-md-row">
+            {initiative.imageUrl ? (
+              <img
+                src={initiative.imageUrl}
+                className="img-fluid mb-3 mb-md-0 me-md-3"
+                alt={initiative.title}
+                style={{width:'300px',height:'200px',objectFit:'cover',borderRadius:'8px'}}
               />
-            </Form.Group>
-            <Button variant="primary" type="submit" className="mt-2" disabled={submittingComment}>
-              {submittingComment ? 'Добавяне...' : 'Добавяне на коментар'}
-            </Button>
-          </Form>
-        ) : (
-          <Alert variant="info">Моля, влезте или се регистрирайте, за да добавите коментари.</Alert>
-        )}
-
-        {loadingComments ? (
-          <div className="text-center">
-            <Spinner animation="border" />
+            ) : (
+              <div className="bg-secondary mb-3 mb-md-0 me-md-3" style={{width:'300px',height:'200px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>
+                Без изображение
+              </div>
+            )}
+            <div>
+              <h2 className="mb-3">{initiative.title}</h2>
+              {!initiative.approved && <Badge bg="warning">Неодобрена</Badge>}
+              <p><strong>Дата:</strong> {new Date(initiative.date).toLocaleDateString()}</p>
+              <p><strong>Категория:</strong> {categoryLabel}</p>
+              <p><strong>Адрес:</strong> {initiative.address || 'Няма информация'}</p>
+              <p><strong>Организатор:</strong> {initiative.organizer ? `${initiative.organizer.name} (${initiative.organizer.email})` : 'N/A'}</p>
+              <p className="mt-3">{initiative.description}</p>
+              {message && (
+                <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
+                  {message.text}
+                </Alert>
+              )}
+              {auth.user && auth.user.role === 'volunteer' && (
+                !application ? (
+                  <Button
+                    variant="primary"
+                    onClick={handleApply}
+                    disabled={applying}
+                  >
+                    {applying ? 'Подаване...' : 'Кандидатстване'}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="success"
+                      disabled
+                    >
+                      {application.status}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      className="ms-2"
+                      onClick={handleDelete}
+                    >
+                      Изтриване на кандидатура
+                    </Button>
+                  </>
+                )
+              )}
+            </div>
           </div>
-        ) : errorComments ? (
-          <Alert variant="danger">Грешка при зареждане на коментарите.</Alert>
-        ) : comments.length === 0 ? (
-          <Alert variant="info">Няма коментари за тази инициатива.</Alert>
-        ) : (
-          <div>
-            {comments.map(comment => (
-              <div key={comment.id} className="mb-3">
-                <Card>
+        </Card.Body>
+      </Card>
+
+      {initiative && (
+        <Card className="mb-4 shadow-sm">
+          <Card.Body>
+            <h4 className="mb-4">Локация</h4>
+            <InitiativesMap initiatives={[initiative]} />
+          </Card.Body>
+        </Card>
+      )}
+
+      <Card className="mb-4 shadow-sm">
+        <Card.Body>
+          <h3>Коментари</h3>
+          {commentMessage && (
+            <Alert variant={commentMessage.type} onClose={() => setCommentMessage(null)} dismissible>
+              {commentMessage.text}
+            </Alert>
+          )}
+          {auth.user ? (
+            <Form onSubmit={handleAddComment} className="mb-4">
+              <Form.Group controlId="commentContent">
+                <Form.Label>Добавете коментар:</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={newCommentContent}
+                  onChange={(e) => setNewCommentContent(e.target.value)}
+                  placeholder="Напишете вашия коментар..."
+                />
+              </Form.Group>
+              <Button variant="primary" type="submit" className="mt-2" disabled={submittingComment}>
+                {submittingComment ? 'Добавяне...' : 'Добавяне на коментар'}
+              </Button>
+            </Form>
+          ) : (
+            <Alert variant="info">Моля, влезте или се регистрирайте, за да добавите коментари.</Alert>
+          )}
+
+          {loadingComments ? (
+            <div className="text-center">
+              <Spinner animation="border" />
+            </div>
+          ) : errorComments ? (
+            <Alert variant="danger">Грешка при зареждане на коментарите.</Alert>
+          ) : comments.length === 0 ? (
+            <Alert variant="info">Няма коментари за тази инициатива.</Alert>
+          ) : (
+            <div>
+              {comments.map(comment => (
+                <Card key={comment.id} className="mb-3">
                   <Card.Body>
                     <Card.Title>{comment.user.name}</Card.Title>
                     <Card.Subtitle className="mb-2 text-muted">{new Date(comment.createdAt).toLocaleString()}</Card.Subtitle>
@@ -284,47 +338,11 @@ const InitiativeDetail = () => {
                     )}
                   </Card.Body>
                 </Card>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Секция за кандидатура (само за доброволци) */}
-      {auth.user && auth.user.role === 'volunteer' && (
-        <>
-          {message && (
-            <Alert variant={message.type} onClose={() => setMessage(null)} dismissible>
-              {message.text}
-            </Alert>
+              ))}
+            </div>
           )}
-          {!application ? (
-            <Button
-              variant="primary"
-              onClick={handleApply}
-              disabled={applying}
-            >
-              {applying ? 'Подаване...' : 'Кандидатстване'}
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="success"
-                disabled
-              >
-                {application.status}
-              </Button>
-              <Button
-                variant="danger"
-                className="ms-2"
-                onClick={handleDelete}
-              >
-                Изтриване на кандидатура
-              </Button>
-            </>
-          )}
-        </>
-      )}
+        </Card.Body>
+      </Card>
     </div>
   );
 };

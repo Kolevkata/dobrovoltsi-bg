@@ -39,7 +39,7 @@ const Navbar = () => {
                 Инициативи
               </NavLink>
             </li>
-            {isAuthenticated && auth.user.role === 'organizer' && (
+            {isAuthenticated && auth.user?.role === 'organizer' && (
               <li className="nav-item">
                 <NavLink className={getNavLinkClass} to="/initiatives/add">
                   Добавяне на инициатива
@@ -48,14 +48,14 @@ const Navbar = () => {
             )}
 
             {/* Dashboard Link for Non-Admin Authenticated Users */}
-            {isAuthenticated && auth.user.role !== 'admin' && (
+            {isAuthenticated && auth.user?.role !== 'admin' && (
               <li className="nav-item">
                 <NavLink className={getNavLinkClass} to="/dashboard">
                   Dashboard
                 </NavLink>
               </li>
             )}
-            {isAuthenticated && auth.user.role === 'admin' && (
+            {isAuthenticated && auth.user?.role === 'admin' && (
               <li className="nav-item">
                 <NavLink className={getNavLinkClass} to="/admin">
                   Admin
@@ -64,7 +64,7 @@ const Navbar = () => {
             )}
           </ul>
           <ul className="navbar-nav ms-auto">
-            {isAuthenticated ? (
+            {isAuthenticated && auth.user ? (
               <li className="nav-item dropdown">
                 <a
                   className="nav-link dropdown-toggle d-flex align-items-center"
@@ -74,7 +74,7 @@ const Navbar = () => {
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  {auth.user.profileImage && (
+                  {auth.user?.profileImage && (
                     <img 
                       src={auth.user.profileImage}
                       alt="Profile"
@@ -99,7 +99,7 @@ const Navbar = () => {
                       Смяна на Парола
                     </NavLink>
                   </li>
-                  {auth.user.role === 'admin' && (
+                  {auth.user?.role === 'admin' && (
                     <>
                       <li>
                         <NavLink className="dropdown-item" to="/admin/users">

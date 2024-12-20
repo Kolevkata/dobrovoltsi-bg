@@ -1,4 +1,4 @@
-// /frontend/src/pages/Dashboard.js
+// /src/pages/Dashboard.js
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
@@ -17,6 +17,8 @@ const Dashboard = () => {
   const [errorApplications, setErrorApplications] = useState(false);
   const [message, setMessage] = useState(null);
 
+  const userRole = auth.user?.role;
+
   const fetchInitiatives = useCallback(async () => {
     try {
       const res = await axios.get('/initiatives', {
@@ -24,9 +26,8 @@ const Dashboard = () => {
           Authorization: `Bearer ${auth.accessToken}`,
         },
       });
-      // За организатор: филтриране на инициативите по организаторId
       const organizerInitiatives = res.data.filter(
-        (initiative) => initiative.organizerId === auth.user.id
+        (initiative) => initiative.organizerId === auth.user?.id
       );
       setInitiatives(organizerInitiatives);
     } catch (err) {
@@ -35,7 +36,7 @@ const Dashboard = () => {
     } finally {
       setLoadingInitiatives(false);
     }
-  }, [auth.accessToken, auth.user.id]);
+  }, [auth.accessToken, auth.user?.id]);
 
   const fetchApplicationsForOrganizer = useCallback(async () => {
     try {
@@ -70,19 +71,19 @@ const Dashboard = () => {
   }, [auth.accessToken]);
 
   useEffect(() => {
-    if (auth.user.role === 'organizer') {
+    if (userRole === 'organizer') {
       fetchInitiatives();
       fetchApplicationsForOrganizer();
-    } else if (auth.user.role === 'volunteer') {
+    } else if (userRole === 'volunteer') {
       fetchApplicationsForVolunteer();
     }
-  }, [auth.user.role, fetchInitiatives, fetchApplicationsForOrganizer, fetchApplicationsForVolunteer]);
+  }, [userRole, fetchInitiatives, fetchApplicationsForOrganizer, fetchApplicationsForVolunteer]);
 
   const refreshApplications = () => {
     setLoadingApplications(true);
-    if (auth.user.role === 'organizer') {
+    if (userRole === 'organizer') {
       fetchApplicationsForOrganizer();
-    } else if (auth.user.role === 'volunteer') {
+    } else if (userRole === 'volunteer') {
       fetchApplicationsForVolunteer();
     }
   };
@@ -104,11 +105,19 @@ const Dashboard = () => {
     }
   };
 
+  if (!userRole) {
+    return (
+      <div className="container mt-5">
+        <Alert variant="info">Моля, влезте в профила си.</Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="container mt-5">
       <h2>Моят Dashboard</h2>
 
-      {auth.user.role === 'organizer' && (
+      {userRole === 'organizer' && (
         <>
           <Link to="/initiatives/add" className="btn btn-success mb-4">
             Добавяне на нова инициатива
@@ -186,7 +195,7 @@ const Dashboard = () => {
         </>
       )}
 
-      {auth.user.role === 'volunteer' && (
+      {userRole === 'volunteer' && (
         <>
           <h3>Вашите подадени кандидатури</h3>
           {loadingApplications ? (

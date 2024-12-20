@@ -14,6 +14,10 @@ const Profile = () => {
     const [message, setMessage] = useState(null);
 
     useEffect(() => {
+        if (!auth.accessToken) {
+          setLoading(false);
+          return;
+        }
         const fetchProfile = async () => {
             try {
                 const res = await axios.get('/users/me', {
@@ -44,10 +48,26 @@ const Profile = () => {
         );
     }
 
+    if (!auth.user) {
+        return (
+            <div className="container mt-5">
+                <Alert variant="info">Моля, влезте в профила си.</Alert>
+            </div>
+        );
+    }
+
     if (error) {
         return (
             <div className="container mt-5">
                 <Alert variant="danger">{error}</Alert>
+            </div>
+        );
+    }
+
+    if (!profile) {
+        return (
+            <div className="container mt-5">
+                <Alert variant="info">Профилът не беше намерен.</Alert>
             </div>
         );
     }
