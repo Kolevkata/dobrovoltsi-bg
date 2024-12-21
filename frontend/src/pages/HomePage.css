@@ -4,6 +4,10 @@
     background: linear-gradient(rgba(40, 44, 52, 0.8), rgba(40, 44, 52, 0.8)), url('../backgrounds/background.jpg') no-repeat center center;
     background-size: cover;
     height: 80vh;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .feature-box {
@@ -24,6 +28,7 @@
 .homepage .App-logo {
     width: 150px;
     height: auto;
+    filter: invert(1);
 }
 
 
@@ -73,4 +78,16 @@
     margin-top: 20px;
     margin: 20px auto; 
     display: block; 
+}
+
+@media (max-width: 1400px) and (min-width: 1200px) {
+    .feature-box{
+        height: 200px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .feature-box{
+        height: 280px;
+    }
 }

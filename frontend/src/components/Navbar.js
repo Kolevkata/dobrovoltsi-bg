@@ -69,7 +69,7 @@ const Navbar = () => {
                 <a
                   className="nav-link dropdown-toggle d-flex align-items-center"
                   href="#!"
-                  id="navbarDropdown"
+                  id="navbarDropdown"   
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"

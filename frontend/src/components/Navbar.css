@@ -1,5 +1,6 @@
 /* /src/components/Navbar.css */
 
+
 .navbar-custom {
     background-color: #333;
     overflow: hidden;
@@ -30,6 +31,7 @@
 
 .navbar-links a:hover {
     background-color: #575757;
+
 }
 
 .navbar-auth a {
