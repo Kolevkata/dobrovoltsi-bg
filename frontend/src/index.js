@@ -49,13 +49,13 @@ const AxiosInterceptor = ({ children }) => {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <React.StrictMode>
+    //<React.StrictMode>
             <LoadingProvider>
                 <AxiosInterceptor>
                     <App />
                 </AxiosInterceptor>
             </LoadingProvider>
-    </React.StrictMode>
+    //</React.StrictMode>
 );
 
 // Optional: reportWebVitals can be removed if not used
